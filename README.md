@@ -34,6 +34,7 @@ samples, guidance on mobile development, and a full API reference.
 - **Flutter & Dart** sebagai framework dan bahasa pemrograman.
 - **Roboto** sebagai font bawaan Material.
 - **Material Icons** sebagai ikon bawaan Flutter.
+- **material_ui** sebagai paket pustaka Material (pengganti `flutter/material.dart`).
 
 Tidak ada paket tambahan atau aset eksternal yang digunakan.
 
@@ -65,8 +66,13 @@ File utama aplikasi berada di dalam folder `lib/` dengan pembagian sebagai berik
 
 ```
 lib/
-├── main.dart   # Entry point dan konfigurasi aplikasi
-└── menu.dart   # Halaman utama dan komponen menu
+├── main.dart                    # Entry point dan konfigurasi tema aplikasi
+├── screens/
+│   ├── menu.dart                # Halaman utama (MyHomePage, InfoCard, ItemHomepage)
+│   └── experience_form.dart     # Halaman form tambah experience
+└── widgets/
+    ├── item_card.dart           # Kartu tombol menu (ItemCard)
+    └── left_drawer.dart         # Drawer navigasi
 ```
 
 ## Tugas 7

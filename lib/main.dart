@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:myportofolio_mobile/menu.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:myportofolio_mobile/screens/menu.dart';
 
 void main() {
   runApp(const MyApp());
@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
     const accent = Color(0xFF3C2A21); 
 
     return MaterialApp(
-      title: 'MyPortfolio',
+      title: 'MyPortofolio',
       theme: ThemeData(
         useMaterial3: true,
         scaffoldBackgroundColor: paper,
