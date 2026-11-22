@@ -36,7 +36,7 @@ samples, guidance on mobile development, and a full API reference.
 - **Material Icons** sebagai ikon bawaan Flutter.
 - **material_ui** sebagai paket pustaka Material (pengganti `flutter/material.dart`).
 
-Tidak ada paket tambahan atau aset eksternal yang digunakan.
+Tidak ada aset eksternal yang digunakan.
 
 ### Cara Menjalankan
 
@@ -68,8 +68,9 @@ File utama aplikasi berada di dalam folder `lib/` dengan pembagian sebagai berik
 lib/
 ├── main.dart                    # Entry point dan konfigurasi tema aplikasi
 ├── screens/
-│   ├── menu.dart                # Halaman utama (MyHomePage, InfoCard, ItemHomepage)
-│   └── experience_form.dart     # Halaman form tambah experience
+│   ├── menu.dart                # Halaman utama
+│   ├── experience_form.dart     # Form tambah experience
+│   └── education_form.dart      # Form tambah education
 └── widgets/
     ├── item_card.dart           # Kartu tombol menu (ItemCard)
     └── left_drawer.dart         # Drawer navigasi
@@ -200,3 +201,78 @@ Membantu mengenal ikon Material bawaan Flutter, kategori ikon yang relevan untuk
 
 ### **5. Evaluasi Kritis terhadap Penggunaan AI**
 AI digunakan untuk membantu memahami konsep Flutter dan menyesuaikan pendekatan pengerjaan dengan *requirement* tugas. Saran awal AI berupa rancangan dashboard dengan CRUD dan role ternyata melebihi cakupan Tugas 7, sehingga saya memeriksanya kembali terhadap requirement dan hanya menerapkan bagian yang dibutuhkan. Setiap saran saya periksa dan sesuaikan dengan kondisi proyek. Implementasi, pengujian dengan ``flutter analyze``, dan keputusan akhir tetap dilakukan oleh saya, sehingga AI hanya berperan sebagai pendukung proses belajar.
+
+## Tugas 8
+1. Perbedaan antara `Navigator.push()`, `pushReplacement()`, dan `pop()`, antara lain:
+
+| Method | Cara kerja pada stack route | Dipakai untuk |
+|---|---|---|
+| `Navigator.push()` | Menambahkan route baru **di atas** halaman yang sedang dibuka. Halaman sebelumnya tetap tersimpan. | Membuka halaman baru yang memungkinkan pengguna kembali ke halaman sebelumnya.|
+| `Navigator.pushReplacement()` | **Mengganti** halaman yang sedang dibuka dengan halaman baru. Halaman sebelumnya dihapus dari *stack*, sedangkan halaman di bawahnya tidak berubah. | Berpindah halaman tanpa menyimpan halaman sebelumnya. |
+| `Navigator.pop()` | **Menghapus** halaman paling atas dari *stack* dan menampilkan halaman sebelumnya. | Kembali ke halaman sebelumnya atau menutup dialog. |
+
+* **Membuka formulir dari kartu aksi**: Pada `ItemCard`, tombol "Tambah Experience" dan "Tambah Education" menggunakan `Navigator.push()` untuk membuka halaman formulir melalui `MaterialPageRoute`. Dengan cara ini, halaman menu utama tetap tersimpan di *stack* tepat di bawah halaman formulir. Karena itu, pengguna dapat kembali ke menu utama dengan tombol Back bawaan perangkat atau *gesture swipe*, yang menjalankan `Navigator.pop()` dan menghapus *route* formulir dari *stack*.
+
+* **Opsi Home di drawer**: Opsi Home menggunakan `Navigator.pushReplacement()` dengan `MaterialPageRoute(builder: (context) => MyHomePage())`. *Route* yang sedang tampil (halaman formulir) diganti oleh halaman utama, sedangkan *route* di bawahnya pada *stack* tidak diubah. Akibatnya, formulir tidak tertinggal di *stack* dan pengguna langsung sampai di halaman utama. Berbeda dengan `push`, *route* yang digantikan tidak dapat dikembalikan dengan tombol Back. Opsi "Add Experience" dan "Add Education" di drawer memakai `push`, sehingga formulir ditumpuk di atas halaman sebelumnya.
+
+2. Mekanisme susunan `Scaffold`, `AppBar`, dan `Drawer` membantu menjaga struktur halaman tetap konsisten:
+`Scaffold` adalah kerangka standar halaman dengan slot `appBar`, `drawer`, dan `body`. Semua halaman (`MyHomePage`, `ExperienceFormPage`, `EducationFormPage`) memakai kerangka yang sama sehingga letak judul, ikon menu, dan area isi selalu konsisten. `Drawer` dibuat sekali sebagai widget terpisah (`LeftDrawer` di `lib/widgets/`) lalu dipasang lewat `drawer: const LeftDrawer()` di setiap halaman. Perubahan menu navigasi cukup dilakukan di satu file dan langsung berlaku di semua halaman. `AppBar` juga memberi tombol menu otomatis yang membuka drawer itu.
+
+* **Contoh warna tema yang diterapkan pada lebih dari satu halaman:** warna utama marun (`#6D2932`) didefinisikan sekali di `ThemeData` pada `main.dart`, lalu dipakai lewat `Theme.of(context).colorScheme.primary` pada:
+- `backgroundColor` `AppBar` halaman utama,
+- `backgroundColor` `AppBar` halaman Tambah Experience dan Tambah Education,
+- `decoration` `DrawerHeader` pada `LeftDrawer`.
+Karena semuanya membaca satu sumber tema, mengganti seed color di `main.dart` otomatis mengubah warna seluruh halaman. Tombol simpan memakai `colorScheme.secondary` (cokelat `#3C2A21`) dengan cara yang sama.
+
+3. Formulir disusun sebagai `Form` yang membungkus `SingleChildScrollView` berisi `Column`. Setiap field diberi label tebal di atasnya, lalu dikelompokkan dengan `Padding`. Tata letak vertikal dipilih karena cocok untuk layar ponsel yang sempit dan memudahkan pembacaan field satu per satu, seperti urutan pada form web.
+
+- **Widget pengatur jarak** (`Padding`, `EdgeInsets`, `SizedBox`) memberi ruang antar-field dan di tepi layar sehingga field, label, dan pesan error tidak menempel dan tetap mudah disentuh.
+- **Widget penggulir** (`SingleChildScrollView`) membuat seluruh isi formulir tetap dapat dijangkau ketika ruang layar terbatas. Form Education punya banyak field dan bisa lebih tinggi daripada layar. Saat papan ketik tampil, tinggi area yang terlihat makin kecil. Tanpa penggulir, isi akan terpotong dan Flutter menampilkan error overflow, sehingga tombol Simpan tidak bisa dijangkau.
+
+4. Fungsi dari `GlobalKey<FormState>`, `validator`, dan `validate()` yaitu:
+- **`GlobalKey<FormState>`** (`_formKey`) dipasang pada widget `Form`. Kunci ini memberi akses ke `FormState` dari luar widget field, termasuk dari `onPressed` tombol Simpan.
+- **`validator`** adalah fungsi pada tiap `TextFormField` atau `DropdownButtonFormField`. Fungsi ini mengembalikan teks pesan kesalahan jika input tidak memenuhi aturan, atau `null` jika input valid.
+- **`validate()`** (`_formKey.currentState!.validate()`) dipanggil saat tombol Simpan ditekan. Method ini menjalankan semua `validator` sekaligus, menampilkan pesan merah pada field yang gagal, dan mengembalikan `true` hanya jika semua lolos. Dialog ringkasan hanya ditampilkan di dalam `if (validate())`.
+
+* **Contoh nilai yang ditolak**:
+- Nama institusi hanya berisi spasi (`" "`), `value.trim().isEmpty` akan dijalankan sehingga muncul "Nama institusi tidak boleh kosong!".
+- Validator memeriksa urutan tahun dan apabila tahun selesai sebelum tahun mulai (misal tahun mulai 2024, tahun selesai 2020), ia akan menolak dengan "Tahun selesai tidak boleh sebelum tahun mulai".
+- URL gambar `abc`. Validator menolaknya karena bukan URL thumbnail Google Drive (`https://drive.google.com/thumbnail?id=...`) menyesuaikan dengan model proyek pada django.
+
+**Mengapa memilih jenis input atau papan ketik saja belum cukup:** `keyboardType: TextInputType.number` hanya mengubah tampilan papan ketik. Papan ketik tidak menjamin isi field. Pengguna tetap bisa menempel (*paste*) teks, mengetik angka yang tidak masuk akal seperti `0001`, `9999`, atau `123`, atau mengosongkannya. Papan ketik juga tidak bisa memeriksa aturan antar-field seperti urutan tahun mulai dan selesai, atau format spesifik seperti URL Google Drive. Selain itu, tidak ada papan ketik khusus yang membatasi spasi saja atau batas panjang teks. Jadi validasi tetap diperlukan sebagai pemeriksaan sebenarnya, sedangkan pilihan jenis input hanya membantu kenyamanan pengguna.
+
+### **AI Disclosure Tugas 8**
+AI digunakan dalam proyek ini sebagai sarana pendukung dalam memahami konsep navigasi dan form pada flutter, menyusun halaman form Education, serta menyelesaikan masalah Git dan error saat pengerjaan. Keputusan dan implementasi akhir tetap dilakukan oleh saya berdasarkan *requirement* tugas dan kondisi proyek.
+
+### **1. Alat AI yang Digunakan**
+* **ChatGPT** (Model Bahasa / AI Assistant)
+
+### **2. Ruang Lingkup Bantuan AI**
+* **Konsep Flutter:** Memahami perbedaan `material.dart` dan `material_ui.dart` 
+* **Struktur form:** Memahami langkah tutorial (Form, `GlobalKey<FormState>`, `TextFormField`, `validator`, dialog) dan menyesuaikannya dengan model Education.
+* **Validasi:** Menyusun aturan validasi (isian kosong atau spasi, batas panjang, urutan tahun, format URL thumbnail Google Drive).
+* **Navigasi:** Memahami `push`, `pushReplacement`, dan `pop` serta perilaku stack route.
+* **Git dan Debugging:** Memperbaiki kondisi setelah pindah branch dan stash, file ganda, serta error `MaterialLocalizations` akibat import yang tercampur.
+
+### **3. Strategi *Prompting***
+* **Clarification Follow-up:** Menanyakan perbedaan `material_ui` dan `material.dart`.
+* **Context-Providing Prompting:** Mengirim teks tutorial, screenshot form web, dan hasil `flutter analyze` atau `git status`.
+* **Requirement-Based Prompting:** Menjelaskan model Django dan aturan yang saya inginkan (batas panjang, *dropdown*, *checkbox*, validasi antar-tahun, batas skill) lalu menanyakan *field* dan validasi apa saja yang dibutuhkan di Flutter.
+* **Code Explanation Prompting:** Mengirim potongan kode validator URL gambar untuk menanyakan apakah validasinya sudah tepat dan bagaimana cara kerjanya.
+* **Problem-Based Questioning:** Mengirim pesan error dan log Git untuk mencari penyebab error.
+
+### **4. Log *Prompting* AI**
+**Format Log:** `[ID] / [Tugas] - [Deskripsi Penggunaan AI]: [Link ke Chat]`
+**001 / Tugas 8 - Memahami perbedaan `material_ui` dan `material.dart`**: https://chatgpt.com/share/6b025f02-4f98-83ec-8690-55bce34905e8
+Menanyakan perbedaan kedua import. Jawaban AI awal kurang tepat karena menyamakan `material_ui` dengan Material UI untuk React, sehingga saya mencocokkannya dengan catatan Tutorial 09 bahwa pustaka Material dipindah ke paket `material_ui` mulai Flutter 3.50.
+**002 / Tugas 8 - Menelusuri error `flutter analyze` (182 isu)**: https://chatgpt.com/share/6b025f02-4f98-83ec-8690-55bce34905e8
+Mengirim hasil `flutter analyze` yang masih error. AI menduga penyebabnya adalah import `material_ui` yang tidak ditemukan dan menyarankan mengganti ke `package:flutter/material.dart`.
+**003 / Tugas 8 - Memulihkan `experience_form.dart` yang hilang di branch `tugas-8`**: https://chatgpt.com/share/6b025f2d-5470-83ec-a79d-57adda74875c
+Menanyakan penyebab file Experience hilang padahal ada di `main`. AI menyarankan memeriksa file di `main` dengan `git ls-tree` lalu memulihkannya dengan `git restore --source=main`, tanpa `reset --hard` atau `git clean`.
+**004 / Tugas 8 - Menyesuaikan field dan validasi form Education dengan model Django**: https://chatgpt.com/share/6b025f02-4f98-83ec-8690-55bce34905e8
+Menjelaskan model Education di Django dan menanyakan field serta validasi yang perlu dibuat di Flutter.
+**005 / Tugas 8 - Memeriksa validator URL gambar Google Drive**: https://chatgpt.com/share/6b025f02-4f98-83ec-8690-55bce34905e8
+Mengirim potongan kode `isDriveThumbnail` untuk memastikan validasi URL sudah benar.
+
+### **5. Evaluasi Kritis terhadap Penggunaan AI**
+AI membantu dalam mempermudah pemahaman dan penyelesaian masalah, tetapi tiap sarannya tetap perlu diverifikasi lebih lanjut. Saya mencocokkan penjelasan `material_ui` dengan catatan Tutorial 09, menelusuri error `flutter analyze` hingga menemukan masalah sinkronisasi branch, serta menyesuaikan validasi Education dengan model Django. Dengan demikian, AI berperan sebagai alat bantu, sedangkan verifikasi dan keputusan akhir tetap saya lakukan sendiri.
