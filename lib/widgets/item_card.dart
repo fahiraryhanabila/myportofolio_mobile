@@ -1,12 +1,53 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:myportofolio_mobile/screens/experience_form.dart';
-import 'package:myportofolio_mobile/screens/menu.dart';
 import 'package:myportofolio_mobile/screens/education_form.dart';
+import 'package:myportofolio_mobile/screens/experience_form.dart';
+import 'package:myportofolio_mobile/screens/experience_list_screen.dart';
+import 'package:myportofolio_mobile/screens/login_screen.dart';
+import 'package:myportofolio_mobile/screens/menu.dart';
+import 'package:myportofolio_mobile/services/auth_state.dart';
+import 'package:myportofolio_mobile/widgets/auth_guard.dart';
+import 'package:provider/provider.dart';
 
 class ItemCard extends StatelessWidget {
   final ItemHomepage item;
 
   const ItemCard(this.item, {super.key});
+
+  Future<void> _handleTap(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    final auth = context.read<AuthState>();
+
+    if (item.name == "Tambah Experience") {
+      if (!await ensureLoggedIn(context)) return;
+      navigator.push(
+        MaterialPageRoute(builder: (context) => const ExperienceFormPage()),
+      );
+    } else if (item.name == "Tambah Education") {
+      navigator.push(
+        MaterialPageRoute(builder: (context) => const EducationFormPage()),
+      );
+    } else if (item.name == "Lihat Experience") {
+      navigator.push(
+        MaterialPageRoute(builder: (context) => const ExperienceListScreen()),
+      );
+    } else if (item.name == "Login") {
+      navigator.push(
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+      );
+    } else if (item.name == "Logout") {
+      if (!auth.isLoggedIn) {
+        messenger
+          ..hideCurrentSnackBar()
+          ..showSnackBar(const SnackBar(content: Text("Kamu belum login.")));
+        return;
+      }
+      await auth.logout();
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(content: Text("Berhasil logout.")));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,33 +55,7 @@ class ItemCard extends StatelessWidget {
       color: item.color,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
-        onTap: () {
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(
-              SnackBar(
-                content: Text("Kamu telah menekan tombol ${item.name}!"),
-              ),
-            );
-
-          if (item.name == "Tambah Experience") {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const ExperienceFormPage(),
-              ),
-            );
-          }
-
-          if (item.name == "Tambah Education") {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const EducationFormPage(),
-              ),
-            );
-          }
-        },
+        onTap: () => _handleTap(context),
         child: Container(
           padding: const EdgeInsets.all(8),
           child: Center(
