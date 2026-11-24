@@ -13,8 +13,17 @@ class MyHomePage extends StatelessWidget {
     ItemHomepage("Lihat Skills", Icons.psychology, const Color(0xFF0A2947)),
     ItemHomepage("Lihat Experience", Icons.work, const Color(0xFF6D2932)),
     ItemHomepage("Lihat Education", Icons.school, const Color(0xFF4F6B3A)),
-    ItemHomepage("Tambah Experience", Icons.add_circle, const Color(0xFFB8741A)),
-    ItemHomepage("Tambah Education", Icons.library_add, const Color(0xFF2E7078)),
+    ItemHomepage(
+      "Tambah Experience",
+      Icons.add_circle,
+      const Color(0xFFB8741A),
+    ),
+    ItemHomepage(
+      "Tambah Education",
+      Icons.library_add,
+      const Color(0xFF2E7078),
+    ),
+    ItemHomepage("Login", Icons.login, Colors.indigo),
     ItemHomepage("Logout", Icons.logout, const Color(0xFF3C2A21)),
   ];
 
